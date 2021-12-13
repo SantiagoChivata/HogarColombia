@@ -1,3 +1,5 @@
+
+import { service } from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -25,6 +27,8 @@ export class InmuebleController {
     @repository(InmuebleRepository)
     public inmuebleRepository : InmuebleRepository,
   ) {}
+
+  
 
   @post('/inmuebles')
   @response(200, {

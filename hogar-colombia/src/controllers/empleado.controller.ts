@@ -1,3 +1,4 @@
+import { authenticate } from '@loopback/authentication';
 import { service } from '@loopback/core';
 import {
   Count,
@@ -17,8 +18,10 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
-import {Empleado} from '../models';
+import { Llaves } from '../config/llaves';
+import {Credenciales, Empleado} from '../models';
 import {EmpleadoRepository} from '../repositories';
 import { AutenticacionService } from '../services';
 const fetch = require('node-fetch');
@@ -30,6 +33,34 @@ export class EmpleadoController {
     @service(AutenticacionService)
     public servicioAutenticacion: AutenticacionService
   ) {}
+
+  
+
+  @post("/identificarEmpleado",{
+    responses:{
+      '200':{
+        description:"Identificacion de empleados"
+      }
+    }
+    })
+    async identificarEmpleado(
+      @requestBody() credenciales:Credenciales
+    ){
+      let e = await this.servicioAutenticacion.identificarEmpleado(credenciales.usuario, credenciales.clave);
+      if (e) {
+        let token = this.servicioAutenticacion.GenerarTokenJWT(e);
+        return{
+          datos:{
+            nombre: e.nombre,
+            email: e.email,
+            usuario: e.usuario
+          },
+          tk: token
+        }
+      }else{
+        throw new HttpErrors[401]("Datos invalidos");
+      }
+    }
 
   @post('/empleados')
   @response(200, {
@@ -59,7 +90,7 @@ export class EmpleadoController {
     let destino = empleado.email;
     let asunto = "Registro en Hogar Colombia Web"
     let contenido = `Hola ${empleado.nombre}, su nombre de usuario es: ${empleado.usuario} y su contraseña es: ${clave} `;
-    fetch(`http://127.0.0.1:5000/correo?correo_destino=${destino}&asunto=${asunto}&contenido=${contenido}`)
+    fetch(`${Llaves.urlServicioNotificaciones}/correo?correo_destino=${destino}&asunto=${asunto}&contenido=${contenido}`)
       .then((data:any) => {
         console.log(data);
         console.log(destino);

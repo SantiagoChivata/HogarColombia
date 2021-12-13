@@ -19,12 +19,15 @@ import {
 } from '@loopback/rest';
 import {Cliente} from '../models';
 import {ClienteRepository} from '../repositories';
+import { authenticate } from '@loopback/authentication';
 
+@authenticate('admin')
 export class ClienteController {
   constructor(
     @repository(ClienteRepository)
     public clienteRepository : ClienteRepository,
   ) {}
+ 
 
   @post('/clientes')
   @response(200, {
@@ -46,7 +49,7 @@ export class ClienteController {
   ): Promise<Cliente> {
     return this.clienteRepository.create(cliente);
   }
-
+  @authenticate.skip()
   @get('/clientes/count')
   @response(200, {
     description: 'Cliente model count',
